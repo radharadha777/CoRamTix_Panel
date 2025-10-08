@@ -1,0 +1,73 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
+  release:
+    types:
+      - published
+
+jobs:
+  push:
+    name: Push
+    runs-on: ubuntu-24.04
+    # Skip job if commit message contains "skip docker" or "docker skip"
+    if: "!contains(github.ref, 'develop') || (!contains(github.event.head_commit.message, 'skip docker') && !contains(github.event.head_commit.message, 'docker skip'))"
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Docker metadata
+        id: docker_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/coramtix/panel
+          flavor: |
+            latest=false
+          tags: |
+            # latest for stable (non-prerelease) GitHub releases
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && github.event.action == 'published' && github.event.release.prerelease == false }}
+            # release tag version
+            type=ref,event=tag
+            # branch name
+            type=ref,event=branch
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        if: github.event_name != 'pull_request'
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update version (for releases)
+        if: github.event_name == 'release' && github.event.action == 'published'
+        env:
+          REF: ${{ github.event.release.tag_name }}
+        run: |
+          sed -i "s/    'version' => 'canary',/    'version' => '${REF:1}',/" config/app.php
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64,linux/arm64
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
