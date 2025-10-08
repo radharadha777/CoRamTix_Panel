@@ -30,16 +30,17 @@ RUN apk add --no-cache --update \
     libzip-dev \
     certbot \
     certbot-nginx \
+    netcat-openbsd \
     && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath gd pdo_mysql zip \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Setup application
-RUN cp .env.example .env \
+RUN mkdir -p /app/var \
+    && cp .env.example .env \
     && mkdir -p bootstrap/cache/ storage/logs storage/framework/sessions storage/framework/views storage/framework/cache \
     && chmod 777 -R bootstrap storage \
     && composer install --no-dev --optimize-autoloader \
-    && php artisan key:generate \
     && rm -rf .env bootstrap/cache/*.php \
     && mkdir -p /app/storage/logs/ \
     && chown -R nginx:nginx .
