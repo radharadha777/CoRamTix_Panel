@@ -133,7 +133,7 @@
         "yarn-deduplicate": "^1.1.1"
     },
     "scripts": {
-        "clean": "if [ -d \"public/assets\" ]; then cd public/assets && find . \\( -name \"*.js\" -o -name \"*.map\" \\) -type f -delete; else echo 'public/assets directory does not exist, skipping clean'; fi",
+        "clean": "find public/assets -name \"*.js\" -o -name \"*.map\" -type f -delete 2>/dev/null || true",
         "test": "jest",
         "lint": "eslint ./resources/scripts/**/*.{ts,tsx} --ext .ts,.tsx",
         "watch": "cross-env NODE_ENV=development ./node_modules/.bin/webpack --watch --progress",
