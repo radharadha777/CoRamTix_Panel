@@ -1,6 +1,6 @@
 <p align="center">
 <a href="https://coramtix.dev/">
-<img width="1280" height="640" alt="CoRamTix Banner" src="https://github.com/user-attachments/assets/a02869d0-f5d3-4391-8f45-cada52aa6916" />
+<img width="1280" height="640" alt="CoRamTix Banner" src="" />
 </a>
 </p>
 
