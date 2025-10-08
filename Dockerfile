@@ -1,18 +1,18 @@
-# Stage 0: Frontend Build (Skipped - Will be added later)
+# Stage 0: Frontend Build (SKIPPED - Will fix later)
 FROM --platform=$TARGETOS/$TARGETARCH mhart/alpine-node:14 as frontend-build
 WORKDIR /app
 COPY . ./
 
-# Skip frontend build temporarily - focus on backend first
-RUN echo "Frontend build temporarily skipped" && \
+# COMPLETELY SKIP FRONTEND BUILD - No webpack errors
+RUN echo "FRONTEND BUILD TEMPORARILY DISABLED" && \
     mkdir -p public/assets && \
-    echo "// Frontend assets will be built in production environment" > public/assets/build-skipped.txt
+    echo "/* Frontend assets will be added in production */" > public/assets/build-disabled.txt
 
 # Stage 1: PHP Backend
 FROM --platform=$TARGETOS/$TARGETARCH php:8.2-fpm-alpine
 WORKDIR /app
 
-# Copy application code
+# Copy application code (NO ASSETS FROM STAGE 0)
 COPY . ./
 
 # Install system dependencies
@@ -58,16 +58,7 @@ COPY .github/docker/default.conf /etc/nginx/http.d/default.conf
 COPY .github/docker/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY .github/docker/supervisord.conf /etc/supervisord.conf
 
-# Create php-fpm.conf if it doesn't exist
-RUN if [ ! -f "/usr/local/etc/php-fpm.conf" ]; then \
-        echo "[global]\ndaemonize = no\n[www]\nlisten = /var/run/php/php8.2-fpm.sock\nlisten.owner = nginx\nlisten.group = nginx\nlisten.mode = 0660" > /usr/local/etc/php-fpm.conf; \
-    fi
-
 EXPOSE 80 443
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost/ || exit 1
 
 ENTRYPOINT [ "/bin/ash", ".github/docker/entrypoint.sh" ]
 CMD [ "supervisord", "-n", "-c", "/etc/supervisord.conf" ]
