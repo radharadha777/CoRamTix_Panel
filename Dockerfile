@@ -24,6 +24,9 @@ WORKDIR /app
 COPY . ./
 COPY --from=frontend-build /app/public/assets ./public/assets
 
+# Create var directory for env and logs
+RUN mkdir -p /app/var
+
 # Install system dependencies
 RUN apk add --no-cache \
     ca-certificates \
@@ -39,6 +42,7 @@ RUN apk add --no-cache \
     libzip-dev \
     certbot \
     certbot-nginx \
+    netcat-openbsd \
     && docker-php-ext-configure zip \
     && docker-php-ext-install bcmath gd pdo_mysql zip
 
@@ -60,7 +64,7 @@ RUN rm /usr/local/etc/php-fpm.conf \
     && sed -i 's/ssl_session_cache/#ssl_session_cache/' /etc/nginx/nginx.conf \
     && mkdir -p /var/run/php /var/run/nginx
 
-# Copy configuration files
+# Copy configuration files & entrypoint
 COPY .github/docker/default.conf /etc/nginx/http.d/default.conf
 COPY .github/docker/www.conf /usr/local/etc/php-fpm.conf
 COPY .github/docker/supervisord.conf /etc/supervisord.conf
