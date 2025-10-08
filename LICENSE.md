@@ -1,6 +1,6 @@
 <p align="center">
-<a href="https://coramtix.dev/">
-<img height="313" alt="image" src="https://github.com/user-attachments/assets/6a8a5238-9d72-4c4e-bad3-f3fa95ade35a" />
+<a href="https://coramtix.in/">
+<img height="313" alt="image" src="" />
 </a>
 </p>
 
